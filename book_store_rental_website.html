@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVerse - Bán & Cho Thuê Sách Trực Tuyến</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Plus Jakarta Sans & Merriweather) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdfbf7',
+                            100: '#f7f2e7',
+                            200: '#eee3cb',
+                            500: '#c29b38',
+                            800: '#2c3e35', // Deep Warm Sage/Forest Green
+                            900: '#1b2922',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fcfaf6;
+            color: #2b2b2b;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5b8a5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9e8e78;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased flex flex-col min-h-screen selection:bg-brand-500 selection:text-white">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-3 shrink-0 cursor-pointer" onclick="filterBooks('all')">
+                    <div class="w-10 h-10 rounded-xl bg-brand-800 text-amber-100 flex items-center justify-center text-xl font-bold shadow-md">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <span class="font-serif font-bold text-2xl text-brand-800 tracking-tight block leading-none">BookVerse</span>
+                        <span class="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">Tri thức & Cảm hứng</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-md relative mx-4">
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm kiếm tên sách, tác giả..." 
+                        class="w-full pl-10 pr-4 py-2.5 rounded-full bg-stone-100 border-none text-sm focus:outline-none focus:ring-2 focus:ring-brand-800/20 focus:bg-white transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-stone-400 text-sm"></i>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-3 sm:gap-4">
+                    
+                    <!-- Wallet Badge -->
+                    <div class="flex items-center bg-stone-100 hover:bg-stone-200/80 p-1.5 pl-3 rounded-full border border-stone-200/80 transition cursor-pointer" onclick="openModal('walletModal')">
+                        <div class="mr-2.5 text-right hidden sm:block">
+                            <span class="text-[10px] uppercase text-stone-500 font-bold block leading-tight">Ví của tôi</span>
+                            <span id="walletBalance" class="text-sm font-bold text-brand-800 leading-tight">500.000 ₫</span>
+                        </div>
+                        <button class="bg-brand-800 hover:bg-brand-900 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs transition shadow-sm" title="Quản lý ví">
+                            <i class="fa-solid fa-wallet"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cart Button -->
+                    <button onclick="toggleCartDrawer()" class="relative p-2.5 text-stone-700 hover:text-brand-800 rounded-full hover:bg-stone-100 transition">
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <span id="cartCount" class="absolute top-1 right-1 bg-amber-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar -->
+            <div class="pb-3 md:hidden">
+                <div class="relative w-full">
+                    <input type="text" id="mobileSearchInput" oninput="handleSearch(true)" placeholder="Tìm kiếm tên sách, tác giả..." 
+                        class="w-full pl-10 pr-4 py-2 rounded-full bg-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800/20">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-sm"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO BANNER -->
+    <section class="bg-gradient-to-r from-brand-800 to-brand-900 text-white py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+            <div class="max-w-xl text-center md:text-left">
+                <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-semibold mb-4 border border-amber-500/30">
+                    <i class="fa-solid fa-sparkles mr-1"></i> Ưu đãi đọc sách mùa hè
+                </span>
+                <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4">Khám phá thế giới tri thức không giới hạn</h1>
+                <p class="text-stone-300 text-sm sm:text-base mb-6 leading-relaxed">Sở hữu cuốn sách yêu thích hoặc tiết kiệm chi phí tối đa với dịch vụ cho thuê sách theo tuần linh hoạt.</p>
+                <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                    <a href="#book-section" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-6 py-3 rounded-full text-sm transition shadow-lg hover:shadow-amber-500/20">
+                        Khám phá ngay
+                    </a>
+                    <button onclick="openModal('walletModal')" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-full text-sm backdrop-blur-sm transition border border-white/20">
+                        Nạp tiền vào ví
+                    </button>
+                </div>
+            </div>
+            <div class="hidden md:flex gap-4">
+                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80" class="w-36 h-52 object-cover rounded-lg shadow-2xl rotate-3 transform hover:rotate-0 transition duration-300">
+                <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80" class="w-36 h-52 object-cover rounded-lg shadow-2xl -rotate-3 transform hover:rotate-0 transition duration-300">
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main id="book-section" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Filter Tabs & Controls -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-stone-200 pb-5">
+            <div>
+                <h2 class="font-serif text-2xl font-bold text-stone-800">Kho Sách Nổi Bật</h2>
+                <p class="text-xs text-stone-500 mt-1">Lựa chọn mua đứt sở hữu hoặc thuê đọc ngắn hạn</p>
+            </div>
+            
+            <!-- Category Tabs -->
+            <div class="flex p-1 bg-stone-200/70 rounded-xl text-sm font-medium w-full sm:w-auto">
+                <button onclick="filterBooks('all')" id="tab-all" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition active-tab">Tất cả</button>
+                <button onclick="filterBooks('buy')" id="tab-buy" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition">Sách Bán</button>
+                <button onclick="filterBooks('rent')" id="tab-rent" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition">Sách Cho Thuê</button>
+            </div>
+        </div>
+
+        <!-- Book Grid -->
+        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Rendered by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16">
+            <i class="fa-solid fa-book-open-reader text-5xl text-stone-300 mb-4"></i>
+            <h3 class="text-lg font-bold text-stone-600">Không tìm thấy sách phù hợp</h3>
+            <p class="text-sm text-stone-400 mt-1">Vui lòng thử tìm kiếm với từ khóa khác</p>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-900 text-stone-400 py-8 border-t border-stone-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:text-left items-center text-sm">
+            <div class="mb-4 sm:mb-0">
+                <p class="text-white font-serif font-bold text-base">BookVerse Store & Rental</p>
+                <p class="text-xs mt-1">Nền tảng mua bán & đọc sách trực tuyến linh hoạt.</p>
+            </div>
+            <p class="text-xs text-stone-500">&copy; 2026 BookVerse. Tất cả quyền được bảo lưu.</p>
+        </div>
+    </footer>
+
+    <!-- CART DRAWER / MODAL -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden pointer-events-none transition-all duration-300 opacity-0">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full pointer-events-auto" id="cartContent">
+                
+                <!-- Drawer Header -->
+                <div class="p-6 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bag-shopping text-brand-800 text-lg"></i>
+                        <h2 class="font-serif text-lg font-bold text-stone-800">Giỏ hàng của bạn</h2>
+                    </div>
+                    <button onclick="toggleCartDrawer()" class="text-stone-400 hover:text-stone-600 p-2 text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Drawer Body (Items) -->
+                <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <!-- Dynamic Cart Content -->
+                </div>
+
+                <!-- Drawer Footer (Checkout) -->
+                <div class="p-6 bg-stone-50 border-t border-stone-200 space-y-4">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between text-stone-600">
+                            <span>Tạm tính:</span>
+                            <span id="cartSubtotal" class="font-semibold">0 ₫</span>
+                        </div>
+                        <div class="flex justify-between text-stone-600">
+                            <span>Số dư ví hiện tại:</span>
+                            <span id="cartWalletBalance" class="font-semibold text-brand-800">500.000 ₫</span>
+                        </div>
+                        <div class="flex justify-between text-base font-bold text-stone-900 pt-2 border-t border-stone-200">
+                            <span>Tổng thanh toán:</span>
+                            <span id="cartTotal" class="text-amber-700">0 ₫</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Option -->
+                    <div class="space-y-2 pt-2">
+                        <label class="text-xs font-bold text-stone-500 uppercase tracking-wider block">Phương thức thanh toán</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="border rounded-xl p-2.5 flex items-center gap-2 cursor-pointer hover:bg-stone-100/80 transition text-xs font-medium">
+                                <input type="radio" name="paymentMethod" value="wallet" checked class="accent-brand-800">
+                                <i class="fa-solid fa-wallet text-brand-800"></i> Số dư Ví
+                            </label>
+                            <label class="border rounded-xl p-2.5 flex items-center gap-2 cursor-pointer hover:bg-stone-100/80 transition text-xs font-medium">
+                                <input type="radio" name="paymentMethod" value="qr" class="accent-brand-800">
+                                <i class="fa-solid fa-qrcode text-stone-700"></i> Mã QR Bank
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="processCheckout()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                        <span>Thanh Toán Ngay</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WALLET MODAL (Nạp / Rút tiền) -->
+    <div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl transform scale-95 transition-transform duration-200" id="walletModalCard">
+            <div class="flex justify-between items-center pb-4 border-b border-stone-100">
+                <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2">
+                    <i class="fa-solid fa-wallet text-amber-600"></i> Quản Lý Ví Tiền
+                </h3>
+                <button onclick="closeModal('walletModal')" class="text-stone-400 hover:text-stone-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="my-5 p-4 rounded-xl bg-gradient-to-r from-brand-800 to-brand-900 text-white shadow-md">
+                <span class="text-xs text-stone-300 block uppercase font-medium">Số dư khả dụng</span>
+                <span id="modalWalletBalance" class="text-2xl font-bold font-serif tracking-tight mt-1 block">500.000 ₫</span>
+            </div>
+
+            <!-- Action Tabs -->
+            <div class="flex border-b border-stone-200 mb-4">
+                <button id="btnDepositTab" onclick="switchWalletTab('deposit')" class="flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800">Nạp Tiền</button>
+                <button id="btnWithdrawTab" onclick="switchWalletTab('withdraw')" class="flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent">Rút Tiền</button>
+            </div>
+
+            <!-- Form Deposit -->
+            <form id="depositForm" onsubmit="handleDeposit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Số tiền nạp (VNĐ)</label>
+                    <input type="number" id="depositAmount" min="10000" step="10000" placeholder="Nhập số tiền (VD: 100000)" required
+                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Cổng thanh toán</label>
+                    <select id="depositMethod" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 bg-white">
+                        <option value="Momo">Ví MoMo</option>
+                        <option value="VNPay">Cổng VNPay</option>
+                        <option value="Bank">Chuyển khoản Ngân hàng (MB/Vietcombank)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition text-sm">
+                    Xác Nhận Nạp Tiền
+                </button>
+            </form>
+
+            <!-- Form Withdraw -->
+            <form id="withdrawForm" onsubmit="handleWithdraw(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Số tiền rút (VNĐ)</label>
+                    <input type="number" id="withdrawAmount" min="10000" step="10000" placeholder="Nhập số tiền rút" required
+                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Ngân hàng thụ hưởng</label>
+                    <input type="text" placeholder="Tên ngân hàng (VD: Vietcombank)" required
+                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 mb-2">
+                    <input type="text" placeholder="Số tài khoản" required
+                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <button type="submit" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl transition text-sm">
+                    Xác Nhận Rút Tiền
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR PAYMENT MODAL -->
+    <div id="qrModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+            <h3 class="font-serif font-bold text-lg text-stone-800 mb-1">Quét Mã Thanh Toán</h3>
+            <p class="text-xs text-stone-500 mb-4">Mở ứng dụng ngân hàng để quét mã VietQR</p>
+            <div class="bg-stone-100 p-4 rounded-xl inline-block mb-4 border border-stone-200">
+                <img id="qrImage" src="" alt="Mã QR Thanh Toán" class="w-48 h-48 mx-auto object-contain">
+            </div>
+            <div class="text-sm font-semibold text-stone-700 mb-4">
+                Số tiền: <span id="qrAmount" class="text-amber-700 font-bold">0 ₫</span>
+            </div>
+            <button onclick="completeQrPayment()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                Tôi Đã Thanh Toán
+            </button>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-stone-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm border border-stone-700">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STATE ---
+        let walletBalance = 500000;
+        let cart = [];
+        let currentFilter = 'all';
+
+        const books = [
+            {
+                id: 1,
+                title: "Đắc Nhân Tâm",
+                author: "Dale Carnegie",
+                type: "buy", // buy | rent
+                price: 95000,
+                rating: 4.9,
+                cover: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+                desc: "Nghệ thuật thu phục lòng người và giao tiếp ứng xử thành công."
+            },
+            {
+                id: 2,
+                title: "Nhà Giả Kim",
+                author: "Paulo Coelho",
+                type: "rent",
+                price: 15000, // Giá thuê / tuần
+                rating: 4.8,
+                cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+                desc: "Hành trình theo đuổi vận mệnh của chàng chăn cừu Santiago."
+            },
+            {
+                id: 3,
+                title: "Tâm Lý Học Về Tiền",
+                author: "Morgan Housel",
+                type: "buy",
+                price: 142000,
+                rating: 4.9,
+                cover: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?auto=format&fit=crop&w=600&q=80",
+                desc: "Những bài học vượt thời gian về sự giàu có, tham lam và hạnh phúc."
+            },
+            {
+                id: 4,
+                title: "Tuổi Trẻ Đáng Giá Bao Nhiêu",
+                author: "Rosie Nguyễn",
+                type: "rent",
+                price: 12000,
+                rating: 4.6,
+                cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80",
+                desc: "Cuốn sách truyền cảm hứng sống và học tập mạnh mẽ cho giới trẻ."
+            },
+            {
+                id: 5,
+                title: "Cây Cam Ngọt Của Tôi",
+                author: "José Mauro de Vasconcelos",
+                type: "buy",
+                price: 88000,
+                rating: 5.0,
+                cover: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80",
+                desc: "Câu chuyện xúc động về cậu bé Zezé và tình yêu thương dịu dàng."
+            },
+            {
+                id: 6,
+                title: "Lược Sử Loài Người",
+                author: "Yuval Noah Harari",
+                type: "rent",
+                price: 25000,
+                rating: 4.9,
+                cover: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80",
+                desc: "Khám phá lịch sử phát triển kì diệu của loài người từ thời đồ đá."
+            },
+            {
+                id: 7,
+                title: "Thói Quen Nguyên Tử (Atomic Habits)",
+                author: "James Clear",
+                type: "buy",
+                price: 135000,
+                rating: 4.9,
+                cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80",
+                desc: "Thay đổi nhỏ, kết quả lớn - Phương pháp xây dựng thói quen tốt."
+            },
+            {
+                id: 8,
+                title: "Tối Giản Tâm Trí",
+                author: "S.J. Scott",
+                type: "rent",
+                price: 18000,
+                rating: 4.5,
+                cover: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
+                desc: "Dọn dẹp sự hỗn loạn trong tư duy để tập trung vào điều quan trọng."
+            }
+        ];
+
+        // --- RENDER FUNCTIONS ---
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function renderBooks(data) {
+            const grid = document.getElementById('bookGrid');
+            const empty = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            } else {
+                empty.classList.add('hidden');
+            }
+
+            data.forEach(book => {
+                const isRent = book.type === 'rent';
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group";
+
+                card.innerHTML = `
+                    <div class="relative h-64 overflow-hidden bg-stone-100">
+                        <img src="${book.cover}" alt="${book.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${isRent ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
+                            ${isRent ? '<i class="fa-solid fa-clock-rotate-left mr-1"></i> Cho Thuê' : '<i class="fa-solid fa-cart-shopping mr-1"></i> Sách Bán'}
+                        </span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-1">
+                                <h3 class="font-serif font-bold text-base text-stone-900 group-hover:text-brand-800 transition line-clamp-1">${book.title}</h3>
+                                <div class="flex items-center text-amber-500 text-xs shrink-0 mt-1">
+                                    <i class="fa-solid fa-star mr-1"></i>
+                                    <span class="font-bold text-stone-700">${book.rating}</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-stone-500 mb-2 font-medium">Tác giả: ${book.author}</p>
+                            <p class="text-xs text-stone-400 line-clamp-2 mb-4">${book.desc}</p>
+                        </div>
+
+                        <div class="pt-3 border-t border-stone-100 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-stone-400 block">${isRent ? 'Giá thuê / tuần' : 'Giá bán đứt'}</span>
+                                <span class="font-bold text-base ${isRent ? 'text-amber-700' : 'text-emerald-700'}">${formatMoney(book.price)}</span>
+                            </div>
+                            <button onclick="addToCart(${book.id})" class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-brand-800 hover:text-white text-stone-700 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid ${isRent ? 'fa-key' : 'fa-cart-plus'} text-xs"></i>
+                                <span>${isRent ? 'Thuê ngay' : 'Thêm vào giỏ'}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- CART SYSTEM ---
+        function addToCart(bookId) {
+            const book = books.find(b => b.id === bookId);
+            const existing = cart.find(item => item.id === bookId);
+
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({
+                    ...book,
+                    quantity: 1,
+                    rentWeeks: book.type === 'rent' ? 1 : 0
+                });
+            }
+
+            updateCartUI();
+            showToast(`Đã thêm "${book.title}" vào giỏ hàng`);
+        }
+
+        function updateQuantity(bookId, delta) {
+            const item = cart.find(i => i.id === bookId);
+            if (!item) return;
+
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                cart = cart.filter(i => i.id !== bookId);
+            }
+            updateCartUI();
+        }
+
+        function updateRentWeeks(bookId, weeks) {
+            const item = cart.find(i => i.id === bookId);
+            if (item) {
+                item.rentWeeks = parseInt(weeks) || 1;
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            // Count
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = totalItems;
+
+            // Render Items
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-stone-400">
+                        <i class="fa-solid fa-basket-shopping text-4xl mb-3"></i>
+                        <p class="text-sm font-medium">Giỏ hàng của bạn đang trống</p>
+                    </div>
+                `;
+            } else {
+                cart.forEach(item => {
+                    const isRent = item.type === 'rent';
+                    const itemTotal = isRent 
+                        ? item.price * item.quantity * item.rentWeeks 
+                        : item.price * item.quantity;
+
+                    const div = document.createElement('div');
+                    div.className = "bg-stone-50 p-3.5 rounded-xl border border-stone-200/70 flex gap-3 relative";
+                    div.innerHTML = `
+                        <img src="${item.cover}" class="w-16 h-20 object-cover rounded-lg shrink-0">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-xs text-stone-800 line-clamp-1 pr-4">${item.title}</h4>
+                                    <button onclick="removeItem(${item.id})" class="text-stone-400 hover:text-red-500 text-xs">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                                <span class="text-[10px] font-semibold ${isRent ? 'text-amber-700' : 'text-emerald-700'}">
+                                    ${isRent ? 'Sách thuê' : 'Sách mua'} - ${formatMoney(item.price)}${isRent ? '/tuần' : ''}
+                                </span>
+                            </div>
+
+                            ${isRent ? `
+                                <div class="flex items-center gap-2 my-1 text-xs">
+                                    <span class="text-stone-500 text-[11px]">Số tuần thuê:</span>
+                                    <select onchange="updateRentWeeks(${item.id}, this.value)" class="bg-white border rounded px-1.5 py-0.5 text-xs">
+                                        ${[1,2,3,4,8].map(w => `<option value="${w}" ${item.rentWeeks === w ? 'selected' : ''}>${w} tuần</option>`).join('')}
+                                    </select>
+                                </div>
+                            ` : ''}
+
+                            <div class="flex justify-between items-center mt-1">
+                                <div class="flex items-center border rounded-lg bg-white overflow-hidden">
+                                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">-</button>
+                                    <span class="px-2 text-xs font-bold text-stone-800">${item.quantity}</span>
+                                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">+</button>
+                                </div>
+                                <span class="font-bold text-xs text-stone-900">${formatMoney(itemTotal)}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            // Totals
+            const subtotal = cart.reduce((sum, item) => {
+                return sum + (item.type === 'rent' ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity);
+            }, 0);
+
+            document.getElementById('cartSubtotal').textContent = formatMoney(subtotal);
+            document.getElementById('cartTotal').textContent = formatMoney(subtotal);
+        }
+
+        function removeItem(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCartUI();
+        }
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cartDrawer');
+            const content = document.getElementById('cartContent');
+            
+            if (drawer.classList.contains('opacity-0')) {
+                drawer.classList.remove('pointer-events-none', 'opacity-0');
+                content.classList.remove('translate-x-full');
+            } else {
+                content.classList.add('translate-x-full');
+                drawer.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // --- CHECKOUT PROCESS ---
+        function processCheckout() {
+            if (cart.length === 0) {
+                showToast("Giỏ hàng của bạn đang trống!", "error");
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => {
+                return sum + (item.type === 'rent' ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity);
+            }, 0);
+
+            const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            if (method === 'wallet') {
+                if (walletBalance < total) {
+                    showToast("Số dư ví không đủ! Vui lòng nạp thêm.", "error");
+                    openModal('walletModal');
+                    return;
+                }
+
+                // Deduct Balance
+                walletBalance -= total;
+                updateWalletUI();
+                cart = [];
+                updateCartUI();
+                toggleCartDrawer();
+                showToast("Thanh toán thành công qua Ví tiền!");
+            } else if (method === 'qr') {
+                // Open QR Modal
+                document.getElementById('qrAmount').textContent = formatMoney(total);
+                document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOOKVERSE_PAYMENT_${total}`;
+                toggleCartDrawer();
+                openModal('qrModal');
+            }
+        }
+
+        function completeQrPayment() {
+            closeModal('qrModal');
+            cart = [];
+            updateCartUI();
+            showToast("Thanh toán QR thành công! Đơn hàng đã được xác nhận.");
+        }
+
+        // --- WALLET SYSTEM ---
+        function updateWalletUI() {
+            document.getElementById('walletBalance').textContent = formatMoney(walletBalance);
+            document.getElementById('cartWalletBalance').textContent = formatMoney(walletBalance);
+            document.getElementById('modalWalletBalance').textContent = formatMoney(walletBalance);
+        }
+
+        function switchWalletTab(tab) {
+            const depForm = document.getElementById('depositForm');
+            const withForm = document.getElementById('withdrawForm');
+            const depBtn = document.getElementById('btnDepositTab');
+            const withBtn = document.getElementById('btnWithdrawTab');
+
+            if (tab === 'deposit') {
+                depForm.classList.remove('hidden');
+                withForm.classList.add('hidden');
+                depBtn.className = "flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800";
+                withBtn.className = "flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent";
+            } else {
+                depForm.classList.add('hidden');
+                withForm.classList.remove('hidden');
+                withBtn.className = "flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800";
+                depBtn.className = "flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent";
+            }
+        }
+
+        function handleDeposit(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('depositAmount').value);
+            const method = document.getElementById('depositMethod').value;
+
+            if (amount > 0) {
+                walletBalance += amount;
+                updateWalletUI();
+                document.getElementById('depositAmount').value = '';
+                closeModal('walletModal');
+                showToast(`Đã nạp ${formatMoney(amount)} qua ${method}`);
+            }
+        }
+
+        function handleWithdraw(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+
+            if (amount > walletBalance) {
+                showToast("Số dư ví không đủ để rút!", "error");
+                return;
+            }
+
+            if (amount > 0) {
+                walletBalance -= amount;
+                updateWalletUI();
+                document.getElementById('withdrawAmount').value = '';
+                closeModal('walletModal');
+                showToast(`Đã rút ${formatMoney(amount)} về tài khoản ngân hàng`);
+            }
+        }
+
+        // --- FILTER & SEARCH ---
+        function filterBooks(type) {
+            currentFilter = type;
+            
+            // Tab styles
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-white', 'shadow-sm', 'text-brand-800', 'font-bold'));
+            const activeTab = document.getElementById(`tab-${type}`);
+            if(activeTab) activeTab.classList.add('bg-white', 'shadow-sm', 'text-brand-800', 'font-bold');
+
+            let filtered = books;
+            if (type !== 'all') {
+                filtered = books.filter(b => b.type === type);
+            }
+
+            // Apply search filter if any
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if(query) {
+                filtered = filtered.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
+            }
+
+            renderBooks(filtered);
+        }
+
+        function handleSearch(isMobile = false) {
+            const inputId = isMobile ? 'mobileSearchInput' : 'searchInput';
+            const query = document.getElementById(inputId).value.toLowerCase();
+            
+            let filtered = currentFilter === 'all' ? books : books.filter(b => b.type === currentFilter);
+            filtered = filtered.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
+            
+            renderBooks(filtered);
+        }
+
+        // --- MODAL & TOAST HELPERS ---
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const message = document.getElementById('toastMessage');
+
+            message.textContent = msg;
+            if (type === 'error') {
+                icon.className = "fa-solid fa-circle-exclamation text-rose-400 text-lg";
+            } else {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            filterBooks('all');
+            updateWalletUI();
+        };
+    </script>
+</body>
+</html>
