@@ -4,16 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookVerse - Bán & Cho Thuê Sách Trực Tuyến</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Plus Jakarta Sans & Merriweather) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- EmailJS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -21,12 +16,8 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#fdfbf7',
-                            100: '#f7f2e7',
-                            200: '#eee3cb',
-                            500: '#c29b38',
-                            800: '#2c3e35', // Deep Warm Sage/Forest Green
-                            900: '#1b2922',
+                            50: '#fdfbf7', 100: '#f7f2e7', 200: '#eee3cb',
+                            500: '#c29b38', 800: '#2c3e35', 900: '#1b2922',
                         }
                     },
                     fontFamily: {
@@ -38,24 +29,11 @@
         }
     </script>
     <style>
-        body {
-            background-color: #fcfaf6;
-            color: #2b2b2b;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c5b8a5;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9e8e78;
-        }
+        body { background-color: #fcfaf6; color: #2b2b2b; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c5b8a5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9e8e78; }
         @media print {
             body * { visibility: hidden; }
             #receiptModal, #receiptModal * { visibility: visible; }
@@ -65,12 +43,106 @@
 </head>
 <body class="font-sans antialiased flex flex-col min-h-screen selection:bg-brand-500 selection:text-white">
 
+    <!-- AUTH SCREEN (shown when not logged in) -->
+    <div id="authScreen" class="fixed inset-0 z-[100] bg-gradient-to-br from-brand-800 via-brand-900 to-stone-900 flex items-center justify-center p-4">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -left-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+        </div>
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden relative z-10">
+            <!-- Auth Header -->
+            <div class="bg-gradient-to-r from-brand-800 to-brand-900 p-8 text-center text-white">
+                <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 border border-white/20">
+                    <i class="fa-solid fa-book-open text-3xl text-amber-300"></i>
+                </div>
+                <h1 class="font-serif text-2xl font-bold">BookVerse</h1>
+                <p class="text-stone-300 text-xs mt-1">Tri thức & Cảm hứng</p>
+            </div>
+
+            <!-- Auth Tabs -->
+            <div class="flex border-b border-stone-200">
+                <button id="authLoginTab" onclick="switchAuthTab('login')" class="flex-1 py-3 font-bold text-sm text-brand-800 border-b-2 border-brand-800 transition">Đăng Nhập</button>
+                <button id="authRegisterTab" onclick="switchAuthTab('register')" class="flex-1 py-3 font-bold text-sm text-stone-400 border-b-2 border-transparent transition">Đăng Ký</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-envelope mr-1 text-brand-800"></i> Email
+                    </label>
+                    <input type="email" id="loginEmail" placeholder="Nhập email của bạn" required
+                        class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-lock mr-1 text-brand-800"></i> Mật khẩu
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" required minlength="4"
+                            class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition pr-10">
+                        <button type="button" onclick="togglePassword('loginPassword', this)" class="absolute right-3 top-3.5 text-stone-400 hover:text-stone-600">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="text-red-500 text-xs font-medium hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> <span></span>
+                </div>
+                <button type="submit" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="p-6 space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-user mr-1 text-brand-800"></i> Họ và tên
+                    </label>
+                    <input type="text" id="regName" placeholder="Nhập họ và tên" required
+                        class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-envelope mr-1 text-brand-800"></i> Email
+                    </label>
+                    <input type="email" id="regEmail" placeholder="Nhập email của bạn" required
+                        class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-phone mr-1 text-brand-800"></i> Số điện thoại
+                    </label>
+                    <input type="tel" id="regPhone" placeholder="VD: 0912 345 678" required pattern="[0-9]{10,11}"
+                        class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
+                        <i class="fa-solid fa-lock mr-1 text-brand-800"></i> Mật khẩu
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="regPassword" placeholder="Tối thiểu 4 ký tự" required minlength="4"
+                            class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition pr-10">
+                        <button type="button" onclick="togglePassword('regPassword', this)" class="absolute right-3 top-3.5 text-stone-400 hover:text-stone-600">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="regError" class="text-red-500 text-xs font-medium hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> <span></span>
+                </div>
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Tạo Tài Khoản
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- HEADER / NAVIGATION -->
-    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all duration-200">
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20 gap-4">
-                
-                <!-- Logo -->
                 <div class="flex items-center gap-3 shrink-0 cursor-pointer" onclick="filterBooks('all')">
                     <div class="w-10 h-10 rounded-xl bg-brand-800 text-amber-100 flex items-center justify-center text-xl font-bold shadow-md">
                         <i class="fa-solid fa-book-open"></i>
@@ -81,16 +153,21 @@
                     </div>
                 </div>
 
-                <!-- Search Bar -->
                 <div class="hidden md:flex flex-1 max-w-md relative mx-4">
-                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm kiếm tên sách, tác giả..." 
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm kiếm tên sách, tác giả..."
                         class="w-full pl-10 pr-4 py-2.5 rounded-full bg-stone-100 border-none text-sm focus:outline-none focus:ring-2 focus:ring-brand-800/20 focus:bg-white transition-all">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-stone-400 text-sm"></i>
                 </div>
 
-                <!-- Right Actions -->
                 <div class="flex items-center gap-3 sm:gap-4">
-                    
+                    <!-- User Info -->
+                    <div class="hidden sm:flex items-center gap-2 bg-stone-100 px-3 py-1.5 rounded-full border border-stone-200/80 cursor-pointer" onclick="openModal('userModal')">
+                        <div class="w-7 h-7 rounded-full bg-brand-800 text-white flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <span id="headerUserName" class="text-xs font-semibold text-stone-700 max-w-[100px] truncate">User</span>
+                    </div>
+
                     <!-- Wallet Badge -->
                     <div class="flex items-center bg-stone-100 hover:bg-stone-200/80 p-1.5 pl-3 rounded-full border border-stone-200/80 transition cursor-pointer" onclick="openModal('walletModal')">
                         <div class="mr-2.5 text-right hidden sm:block">
@@ -102,7 +179,6 @@
                         </button>
                     </div>
 
-                    <!-- Cart Button -->
                     <button onclick="toggleCartDrawer()" class="relative p-2.5 text-stone-700 hover:text-brand-800 rounded-full hover:bg-stone-100 transition">
                         <i class="fa-solid fa-bag-shopping text-xl"></i>
                         <span id="cartCount" class="absolute top-1 right-1 bg-amber-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
@@ -110,10 +186,9 @@
                 </div>
             </div>
 
-            <!-- Mobile Search Bar -->
             <div class="pb-3 md:hidden">
                 <div class="relative w-full">
-                    <input type="text" id="mobileSearchInput" oninput="handleSearch(true)" placeholder="Tìm kiếm tên sách, tác giả..." 
+                    <input type="text" id="mobileSearchInput" oninput="handleSearch(true)" placeholder="Tìm kiếm tên sách, tác giả..."
                         class="w-full pl-10 pr-4 py-2 rounded-full bg-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800/20">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-sm"></i>
                 </div>
@@ -132,12 +207,8 @@
                 <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4">Khám phá thế giới tri thức không giới hạn</h1>
                 <p class="text-stone-300 text-sm sm:text-base mb-6 leading-relaxed">Sở hữu cuốn sách yêu thích hoặc tiết kiệm chi phí tối đa với dịch vụ cho thuê sách theo tuần linh hoạt.</p>
                 <div class="flex flex-wrap gap-3 justify-center md:justify-start">
-                    <a href="#book-section" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-6 py-3 rounded-full text-sm transition shadow-lg hover:shadow-amber-500/20">
-                        Khám phá ngay
-                    </a>
-                    <button onclick="openModal('walletModal')" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-full text-sm backdrop-blur-sm transition border border-white/20">
-                        Nạp tiền vào ví
-                    </button>
+                    <a href="#book-section" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-6 py-3 rounded-full text-sm transition shadow-lg">Khám phá ngay</a>
+                    <button onclick="openModal('walletModal')" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-full text-sm backdrop-blur-sm transition border border-white/20">Nạp tiền vào ví</button>
                 </div>
             </div>
             <div class="hidden md:flex gap-4">
@@ -149,28 +220,18 @@
 
     <!-- MAIN CONTENT -->
     <main id="book-section" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        <!-- Filter Tabs & Controls -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-stone-200 pb-5">
             <div>
                 <h2 class="font-serif text-2xl font-bold text-stone-800">Kho Sách Nổi Bật</h2>
                 <p class="text-xs text-stone-500 mt-1">Lựa chọn mua đứt sở hữu hoặc thuê đọc ngắn hạn</p>
             </div>
-            
-            <!-- Category Tabs -->
             <div class="flex p-1 bg-stone-200/70 rounded-xl text-sm font-medium w-full sm:w-auto">
                 <button onclick="filterBooks('all')" id="tab-all" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition active-tab">Tất cả</button>
                 <button onclick="filterBooks('buy')" id="tab-buy" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition">Sách Bán</button>
                 <button onclick="filterBooks('rent')" id="tab-rent" class="tab-btn flex-1 sm:flex-none px-5 py-2 rounded-lg text-stone-700 transition">Sách Cho Thuê</button>
             </div>
         </div>
-
-        <!-- Book Grid -->
-        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Rendered by JavaScript -->
-        </div>
-
-        <!-- Empty State -->
+        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         <div id="emptyState" class="hidden text-center py-16">
             <i class="fa-solid fa-book-open-reader text-5xl text-stone-300 mb-4"></i>
             <h3 class="text-lg font-bold text-stone-600">Không tìm thấy sách phù hợp</h3>
@@ -189,46 +250,54 @@
         </div>
     </footer>
 
-    <!-- CART DRAWER / MODAL -->
+    <!-- USER PROFILE MODAL -->
+    <div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-brand-800 to-brand-900 p-6 text-white text-center">
+                <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3 border-2 border-white/30">
+                    <i class="fa-solid fa-user text-2xl text-amber-300"></i>
+                </div>
+                <h3 id="profileName" class="font-serif font-bold text-lg">User</h3>
+                <p id="profileEmail" class="text-stone-300 text-xs mt-0.5">email@example.com</p>
+            </div>
+            <div class="p-6 space-y-3">
+                <div class="flex items-center justify-between bg-stone-50 rounded-xl p-3 border border-stone-200">
+                    <span class="text-sm text-stone-600"><i class="fa-solid fa-wallet text-brand-800 mr-2"></i>Số dư ví</span>
+                    <span id="profileBalance" class="font-bold text-brand-800 text-sm">0 ₫</span>
+                </div>
+                <div class="flex items-center justify-between bg-stone-50 rounded-xl p-3 border border-stone-200">
+                    <span class="text-sm text-stone-600"><i class="fa-solid fa-phone text-brand-800 mr-2"></i>SĐT</span>
+                    <span id="profilePhone" class="font-bold text-stone-700 text-sm">N/A</span>
+                </div>
+                <button onclick="handleLogout()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition border border-red-200 flex items-center justify-center gap-2 mt-4">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                </button>
+            </div>
+            <div class="px-6 pb-6">
+                <button onclick="closeModal('userModal')" class="w-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-semibold py-2.5 rounded-xl text-sm transition">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART DRAWER -->
     <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden pointer-events-none transition-all duration-300 opacity-0">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="toggleCartDrawer()"></div>
         <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full pointer-events-auto" id="cartContent">
-                
-                <!-- Drawer Header -->
                 <div class="p-6 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-bag-shopping text-brand-800 text-lg"></i>
                         <h2 class="font-serif text-lg font-bold text-stone-800">Giỏ hàng của bạn</h2>
                     </div>
-                    <button onclick="toggleCartDrawer()" class="text-stone-400 hover:text-stone-600 p-2 text-xl">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
+                    <button onclick="toggleCartDrawer()" class="text-stone-400 hover:text-stone-600 p-2 text-xl"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-
-                <!-- Drawer Body (Items) -->
-                <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <!-- Dynamic Cart Content -->
-                </div>
-
-                <!-- Drawer Footer (Checkout) -->
+                <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
                 <div class="p-6 bg-stone-50 border-t border-stone-200 space-y-4">
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between text-stone-600">
-                            <span>Tạm tính:</span>
-                            <span id="cartSubtotal" class="font-semibold">0 ₫</span>
-                        </div>
-                        <div class="flex justify-between text-stone-600">
-                            <span>Số dư ví hiện tại:</span>
-                            <span id="cartWalletBalance" class="font-semibold text-brand-800">0 ₫</span>
-                        </div>
-                        <div class="flex justify-between text-base font-bold text-stone-900 pt-2 border-t border-stone-200">
-                            <span>Tổng thanh toán:</span>
-                            <span id="cartTotal" class="text-amber-700">0 ₫</span>
-                        </div>
+                        <div class="flex justify-between text-stone-600"><span>Tạm tính:</span><span id="cartSubtotal" class="font-semibold">0 ₫</span></div>
+                        <div class="flex justify-between text-stone-600"><span>Số dư ví:</span><span id="cartWalletBalance" class="font-semibold text-brand-800">0 ₫</span></div>
+                        <div class="flex justify-between text-base font-bold text-stone-900 pt-2 border-t border-stone-200"><span>Tổng thanh toán:</span><span id="cartTotal" class="text-amber-700">0 ₫</span></div>
                     </div>
-
-                    <!-- Payment Method Option -->
                     <div class="space-y-2 pt-2">
                         <label class="text-xs font-bold text-stone-500 uppercase tracking-wider block">Phương thức thanh toán</label>
                         <div class="grid grid-cols-2 gap-2">
@@ -242,227 +311,144 @@
                             </label>
                         </div>
                     </div>
-
                     <button onclick="openCheckoutForm()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
-                        <span>Thanh Toán Ngay</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                        <span>Thanh Toán Ngay</span><i class="fa-solid fa-arrow-right text-xs"></i>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CHECKOUT FORM MODAL (Thông tin nhận hàng) -->
+    <!-- CHECKOUT FORM MODAL -->
     <div id="checkoutModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto" id="checkoutModalCard">
-            <!-- Header -->
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b border-stone-100 flex justify-between items-center sticky top-0 bg-white rounded-t-2xl z-10">
-                <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2">
-                    <i class="fa-solid fa-truck-fast text-amber-600"></i> Thông Tin Nhận Hàng
-                </h3>
-                <button onclick="closeModal('checkoutModal')" class="text-stone-400 hover:text-stone-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-amber-600"></i> Thông Tin Nhận Hàng</h3>
+                <button onclick="closeModal('checkoutModal')" class="text-stone-400 hover:text-stone-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <form id="checkoutForm" onsubmit="processCheckout(event)" class="p-6 space-y-4">
-                <!-- Tên người nhận -->
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
-                        <i class="fa-solid fa-user mr-1 text-brand-800"></i> Tên người nhận
-                    </label>
-                    <input type="text" id="receiverName" placeholder="Nhập họ và tên người nhận" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition">
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5"><i class="fa-solid fa-user mr-1 text-brand-800"></i> Tên người nhận</label>
+                    <input type="text" id="receiverName" placeholder="Nhập họ và tên người nhận" required class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
                 </div>
-
-                <!-- Số điện thoại -->
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
-                        <i class="fa-solid fa-phone mr-1 text-brand-800"></i> Số điện thoại
-                    </label>
-                    <input type="tel" id="receiverPhone" placeholder="VD: 0912 345 678" required pattern="[0-9]{10,11}"
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition">
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5"><i class="fa-solid fa-phone mr-1 text-brand-800"></i> Số điện thoại</label>
+                    <input type="tel" id="receiverPhone" placeholder="VD: 0912 345 678" required pattern="[0-9]{10,11}" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
                 </div>
-
-                <!-- Địa chỉ -->
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
-                        <i class="fa-solid fa-location-dot mr-1 text-brand-800"></i> Địa chỉ nhận hàng
-                    </label>
-                    <textarea id="receiverAddress" rows="3" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition resize-none"></textarea>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5"><i class="fa-solid fa-location-dot mr-1 text-brand-800"></i> Địa chỉ nhận hàng</label>
+                    <textarea id="receiverAddress" rows="3" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition resize-none"></textarea>
                 </div>
-
-                <!-- Ghi chú -->
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5">
-                        <i class="fa-solid fa-note-sticky mr-1 text-stone-400"></i> Ghi chú (tuỳ chọn)
-                    </label>
-                    <input type="text" id="orderNote" placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition">
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1.5"><i class="fa-solid fa-note-sticky mr-1 text-stone-400"></i> Ghi chú (tuỳ chọn)</label>
+                    <input type="text" id="orderNote" placeholder="VD: Giao giờ hành chính, gọi trước khi giao..." class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 transition">
                 </div>
-
-                <!-- Order Summary -->
                 <div class="bg-stone-50 rounded-xl p-4 border border-stone-200 space-y-2">
-                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1">
-                        <i class="fa-solid fa-receipt"></i> Tóm tắt đơn hàng
-                    </h4>
-                    <div id="checkoutOrderSummary" class="text-xs text-stone-600 space-y-1">
-                        <!-- Generated by JS -->
-                    </div>
-                    <div class="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200">
-                        <span>Tổng cộng:</span>
-                        <span id="checkoutTotal" class="text-amber-700">0 ₫</span>
-                    </div>
+                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1"><i class="fa-solid fa-receipt"></i> Tóm tắt đơn hàng</h4>
+                    <div id="checkoutOrderSummary" class="text-xs text-stone-600 space-y-1"></div>
+                    <div class="flex justify-between text-sm font-bold text-stone-900 pt-2 border-t border-stone-200"><span>Tổng cộng:</span><span id="checkoutTotal" class="text-amber-700">0 ₫</span></div>
                 </div>
-
-                <!-- Submit -->
                 <button type="submit" id="checkoutSubmitBtn" class="w-full bg-gradient-to-r from-brand-800 to-brand-900 hover:from-brand-900 hover:to-brand-800 text-white font-bold py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-shield-check"></i>
-                    <span>Xác Nhận Đặt Hàng</span>
+                    <i class="fa-solid fa-shield-check"></i><span>Xác Nhận Đặt Hàng</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- RECEIPT MODAL (Biên lai) -->
+    <!-- RECEIPT MODAL -->
     <div id="receiptModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-            <!-- Receipt Header -->
             <div class="bg-gradient-to-r from-brand-800 to-brand-900 text-white p-6 rounded-t-2xl text-center">
                 <i class="fa-solid fa-circle-check text-4xl text-emerald-400 mb-2"></i>
                 <h3 class="font-serif font-bold text-xl">Đặt Hàng Thành Công!</h3>
                 <p class="text-stone-300 text-xs mt-1">Thông tin đơn hàng đã được gửi về email</p>
             </div>
-
-            <!-- Receipt Body -->
             <div class="p-6 space-y-5">
-                <!-- Order Info -->
                 <div class="flex justify-between items-center text-xs text-stone-500 border-b border-dashed border-stone-300 pb-3">
                     <span>Mã đơn hàng: <strong id="receiptOrderId" class="text-stone-800">#BV000000</strong></span>
                     <span id="receiptDate"></span>
                 </div>
-
-                <!-- Receiver Info -->
                 <div class="bg-stone-50 rounded-xl p-4 border border-stone-200 space-y-2 text-sm">
-                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1 mb-2">
-                        <i class="fa-solid fa-user-check text-brand-800"></i> Thông tin người nhận
-                    </h4>
-                    <div class="flex items-start gap-2">
-                        <i class="fa-solid fa-user text-stone-400 mt-0.5 w-4 text-center"></i>
-                        <span id="receiptName" class="font-semibold text-stone-800"></span>
-                    </div>
-                    <div class="flex items-start gap-2">
-                        <i class="fa-solid fa-phone text-stone-400 mt-0.5 w-4 text-center"></i>
-                        <span id="receiptPhone" class="text-stone-700"></span>
-                    </div>
-                    <div class="flex items-start gap-2">
-                        <i class="fa-solid fa-location-dot text-stone-400 mt-0.5 w-4 text-center"></i>
-                        <span id="receiptAddress" class="text-stone-700"></span>
-                    </div>
-                    <div id="receiptNoteRow" class="flex items-start gap-2 hidden">
-                        <i class="fa-solid fa-note-sticky text-stone-400 mt-0.5 w-4 text-center"></i>
-                        <span id="receiptNote" class="text-stone-500 italic"></span>
-                    </div>
+                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1 mb-2"><i class="fa-solid fa-user-check text-brand-800"></i> Thông tin người nhận</h4>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-user text-stone-400 mt-0.5 w-4 text-center"></i><span id="receiptName" class="font-semibold text-stone-800"></span></div>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-phone text-stone-400 mt-0.5 w-4 text-center"></i><span id="receiptPhone" class="text-stone-700"></span></div>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-location-dot text-stone-400 mt-0.5 w-4 text-center"></i><span id="receiptAddress" class="text-stone-700"></span></div>
+                    <div id="receiptNoteRow" class="flex items-start gap-2 hidden"><i class="fa-solid fa-note-sticky text-stone-400 mt-0.5 w-4 text-center"></i><span id="receiptNote" class="text-stone-500 italic"></span></div>
                 </div>
-
-                <!-- Items List -->
                 <div>
-                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1 mb-3">
-                        <i class="fa-solid fa-list-check text-brand-800"></i> Chi tiết sản phẩm
-                    </h4>
-                    <div id="receiptItems" class="space-y-2">
-                        <!-- Generated by JS -->
-                    </div>
+                    <h4 class="text-xs font-bold text-stone-500 uppercase flex items-center gap-1 mb-3"><i class="fa-solid fa-list-check text-brand-800"></i> Chi tiết sản phẩm</h4>
+                    <div id="receiptItems" class="space-y-2"></div>
                 </div>
-
-                <!-- Total -->
                 <div class="border-t border-dashed border-stone-300 pt-3 space-y-1">
-                    <div class="flex justify-between text-sm text-stone-600">
-                        <span>Tạm tính:</span>
-                        <span id="receiptSubtotal">0 ₫</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-stone-600">
-                        <span>Phí vận chuyển:</span>
-                        <span class="text-emerald-600 font-medium">Miễn phí</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-stone-600">
-                        <span>Thanh toán qua:</span>
-                        <span id="receiptPayMethod" class="font-medium text-stone-800">Ví BookVerse</span>
-                    </div>
-                    <div class="flex justify-between text-lg font-bold text-stone-900 pt-2 border-t border-stone-200">
-                        <span>Tổng thanh toán:</span>
-                        <span id="receiptTotal" class="text-amber-700">0 ₫</span>
-                    </div>
+                    <div class="flex justify-between text-sm text-stone-600"><span>Tạm tính:</span><span id="receiptSubtotal">0 ₫</span></div>
+                    <div class="flex justify-between text-sm text-stone-600"><span>Phí vận chuyển:</span><span class="text-emerald-600 font-medium">Miễn phí</span></div>
+                    <div class="flex justify-between text-sm text-stone-600"><span>Thanh toán qua:</span><span id="receiptPayMethod" class="font-medium text-stone-800">Ví BookVerse</span></div>
+                    <div class="flex justify-between text-lg font-bold text-stone-900 pt-2 border-t border-stone-200"><span>Tổng thanh toán:</span><span id="receiptTotal" class="text-amber-700">0 ₫</span></div>
                 </div>
-
-                <!-- Email sent notice -->
                 <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3 text-sm">
                     <i class="fa-solid fa-envelope-circle-check text-emerald-600 text-lg"></i>
-                    <div>
-                        <p class="font-semibold text-emerald-800">Đã gửi biên lai qua Email</p>
-                        <p class="text-emerald-600 text-xs">bui317480@gmail.com</p>
-                    </div>
+                    <div><p class="font-semibold text-emerald-800">Đã gửi biên lai qua Email</p><p class="text-emerald-600 text-xs">bui317480@gmail.com</p></div>
                 </div>
             </div>
-
-            <!-- Receipt Footer -->
             <div class="p-6 pt-0 flex gap-3">
-                <button onclick="printReceipt()" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-print"></i> In biên lai
-                </button>
-                <button onclick="closeModal('receiptModal')" class="flex-1 bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-house"></i> Tiếp tục mua
-                </button>
+                <button onclick="printReceipt()" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2"><i class="fa-solid fa-print"></i> In biên lai</button>
+                <button onclick="closeModal('receiptModal')" class="flex-1 bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2"><i class="fa-solid fa-house"></i> Tiếp tục mua</button>
             </div>
         </div>
     </div>
 
-    <!-- WALLET MODAL (Nạp / Rút tiền) -->
+    <!-- WALLET MODAL -->
     <div id="walletModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl transform scale-95 transition-transform duration-200" id="walletModalCard">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b border-stone-100">
-                <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2">
-                    <i class="fa-solid fa-wallet text-amber-600"></i> Quản Lý Ví Tiền
-                </h3>
-                <button onclick="closeModal('walletModal')" class="text-stone-400 hover:text-stone-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2"><i class="fa-solid fa-wallet text-amber-600"></i> Quản Lý Ví Tiền</h3>
+                <button onclick="closeModal('walletModal')" class="text-stone-400 hover:text-stone-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <!-- Balance Card -->
             <div class="my-5 p-4 rounded-xl bg-gradient-to-r from-brand-800 to-brand-900 text-white shadow-md">
                 <span class="text-xs text-stone-300 block uppercase font-medium">Số dư khả dụng</span>
                 <span id="modalWalletBalance" class="text-2xl font-bold font-serif tracking-tight mt-1 block">0 ₫</span>
             </div>
-
-            <!-- Action Tabs -->
             <div class="flex border-b border-stone-200 mb-4">
                 <button id="btnDepositTab" onclick="switchWalletTab('deposit')" class="flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800">Nạp Tiền</button>
                 <button id="btnWithdrawTab" onclick="switchWalletTab('withdraw')" class="flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent">Rút Tiền</button>
             </div>
 
-            <!-- Form Deposit -->
+            <!-- Deposit Form -->
             <form id="depositForm" onsubmit="handleDeposit(event)" class="space-y-4">
+                <!-- QR Code BIDV -->
+                <div class="bg-stone-50 rounded-xl p-4 border border-stone-200 text-center">
+                    <p class="text-xs font-bold text-stone-500 uppercase mb-3">Quét mã để chuyển khoản nạp tiền</p>
+                    <img src="qr-naptien.png" alt="QR Nạp Tiền BIDV - Nguyen Thai Hoc" class="w-52 h-52 mx-auto object-contain rounded-lg border border-stone-200 bg-white p-1">
+                    <div class="mt-3 space-y-0.5">
+                        <p class="text-sm font-bold text-stone-800">Nguyen Thai Hoc</p>
+                        <p class="text-xs text-stone-500">BIDV - 8869794464</p>
+                        <p class="text-[10px] text-amber-700 font-semibold mt-1">Nội dung CK: BOOKVERSE + [Email đăng ký]</p>
+                    </div>
+                </div>
+
+                <div class="relative flex items-center gap-2">
+                    <div class="flex-1 h-px bg-stone-200"></div>
+                    <span class="text-[10px] text-stone-400 font-bold uppercase">Nhập số tiền đã nạp</span>
+                    <div class="flex-1 h-px bg-stone-200"></div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Số tiền nạp (VNĐ)</label>
                     <input type="number" id="depositAmount" min="10000" step="10000" placeholder="Nhập số tiền (VD: 100000)" required
                         class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Cổng thanh toán</label>
-                    <select id="depositMethod" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 bg-white">
-                        <option value="Momo">Ví MoMo</option>
-                        <option value="VNPay">Cổng VNPay</option>
-                        <option value="Bank">Chuyển khoản Ngân hàng (MB/Vietcombank)</option>
-                    </select>
+                <div class="flex gap-2">
+                    <button type="button" onclick="document.getElementById('depositAmount').value='50000'" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 rounded-lg text-xs transition">50K</button>
+                    <button type="button" onclick="document.getElementById('depositAmount').value='100000'" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 rounded-lg text-xs transition">100K</button>
+                    <button type="button" onclick="document.getElementById('depositAmount').value='200000'" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 rounded-lg text-xs transition">200K</button>
+                    <button type="button" onclick="document.getElementById('depositAmount').value='500000'" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 rounded-lg text-xs transition">500K</button>
                 </div>
                 <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition text-sm">
-                    Xác Nhận Nạp Tiền
+                    <i class="fa-solid fa-circle-check mr-1"></i> Xác Nhận Đã Nạp Tiền
                 </button>
             </form>
 
-            <!-- Form Withdraw -->
+            <!-- Withdraw Form -->
             <form id="withdrawForm" onsubmit="handleWithdraw(event)" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Số tiền rút (VNĐ)</label>
@@ -471,14 +457,10 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Ngân hàng thụ hưởng</label>
-                    <input type="text" placeholder="Tên ngân hàng (VD: Vietcombank)" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 mb-2">
-                    <input type="text" placeholder="Số tài khoản" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    <input type="text" placeholder="Tên ngân hàng (VD: Vietcombank)" required class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 mb-2">
+                    <input type="text" placeholder="Số tài khoản" required class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800">
                 </div>
-                <button type="submit" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl transition text-sm">
-                    Xác Nhận Rút Tiền
-                </button>
+                <button type="submit" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl transition text-sm">Xác Nhận Rút Tiền</button>
             </form>
         </div>
     </div>
@@ -487,395 +469,357 @@
     <div id="qrModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
             <h3 class="font-serif font-bold text-lg text-stone-800 mb-1">Quét Mã Thanh Toán</h3>
-            <p class="text-xs text-stone-500 mb-4">Mở ứng dụng ngân hàng để quét mã VietQR</p>
+            <p class="text-xs text-stone-500 mb-4">Mở ứng dụng ngân hàng để quét mã</p>
             <div class="bg-stone-100 p-4 rounded-xl inline-block mb-4 border border-stone-200">
-                <img id="qrImage" src="" alt="Mã QR Thanh Toán" class="w-48 h-48 mx-auto object-contain">
+                <img src="qr-naptien.png" alt="QR Thanh Toán" class="w-48 h-48 mx-auto object-contain">
             </div>
-            <div class="text-sm font-semibold text-stone-700 mb-4">
-                Số tiền: <span id="qrAmount" class="text-amber-700 font-bold">0 ₫</span>
-            </div>
-            <button onclick="completeQrPayment()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-2.5 rounded-xl text-sm transition">
-                Tôi Đã Thanh Toán
-            </button>
+            <div class="text-sm font-semibold text-stone-700 mb-1">Số tiền: <span id="qrAmount" class="text-amber-700 font-bold">0 ₫</span></div>
+            <p class="text-[10px] text-amber-700 font-semibold mb-4">Nội dung CK: BOOKVERSE + Mã đơn hàng</p>
+            <button onclick="completeQrPayment()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-2.5 rounded-xl text-sm transition">Tôi Đã Thanh Toán</button>
         </div>
     </div>
 
-    <!-- NOTIFICATION TOAST -->
+    <!-- TOAST -->
     <div id="toast" class="fixed bottom-5 right-5 z-[80] transform translate-y-20 opacity-0 transition-all duration-300 bg-stone-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm border border-stone-700">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMessage">Thông báo</span>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- DATA STATE ---
-        let walletBalance = 0; // Số dư ban đầu = 0đ
+        // ==================== AUTH SYSTEM ====================
+        let currentUser = null;
+        let walletBalance = 0;
         let cart = [];
         let currentFilter = 'all';
         let orderCounter = 1000;
         let pendingPaymentMethod = 'wallet';
-
         const SHOP_EMAIL = 'bui317480@gmail.com';
 
-        const books = [
-            {
-                id: 1,
-                title: "Đắc Nhân Tâm",
-                author: "Dale Carnegie",
-                type: "buy",
-                price: 95000,
-                rating: 4.9,
-                cover: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
-                desc: "Nghệ thuật thu phục lòng người và giao tiếp ứng xử thành công."
-            },
-            {
-                id: 2,
-                title: "Nhà Giả Kim",
-                author: "Paulo Coelho",
-                type: "rent",
-                price: 15000,
-                rating: 4.8,
-                cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
-                desc: "Hành trình theo đuổi vận mệnh của chàng chăn cừu Santiago."
-            },
-            {
-                id: 3,
-                title: "Tâm Lý Học Về Tiền",
-                author: "Morgan Housel",
-                type: "buy",
-                price: 142000,
-                rating: 4.9,
-                cover: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?auto=format&fit=crop&w=600&q=80",
-                desc: "Những bài học vượt thời gian về sự giàu có, tham lam và hạnh phúc."
-            },
-            {
-                id: 4,
-                title: "Tuổi Trẻ Đáng Giá Bao Nhiêu",
-                author: "Rosie Nguyễn",
-                type: "rent",
-                price: 12000,
-                rating: 4.6,
-                cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80",
-                desc: "Cuốn sách truyền cảm hứng sống và học tập mạnh mẽ cho giới trẻ."
-            },
-            {
-                id: 5,
-                title: "Cây Cam Ngọt Của Tôi",
-                author: "José Mauro de Vasconcelos",
-                type: "buy",
-                price: 88000,
-                rating: 5.0,
-                cover: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80",
-                desc: "Câu chuyện xúc động về cậu bé Zezé và tình yêu thương dịu dàng."
-            },
-            {
-                id: 6,
-                title: "Lược Sử Loài Người",
-                author: "Yuval Noah Harari",
-                type: "rent",
-                price: 25000,
-                rating: 4.9,
-                cover: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80",
-                desc: "Khám phá lịch sử phát triển kì diệu của loài người từ thời đồ đá."
-            },
-            {
-                id: 7,
-                title: "Thói Quen Nguyên Tử (Atomic Habits)",
-                author: "James Clear",
-                type: "buy",
-                price: 135000,
-                rating: 4.9,
-                cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80",
-                desc: "Thay đổi nhỏ, kết quả lớn - Phương pháp xây dựng thói quen tốt."
-            },
-            {
-                id: 8,
-                title: "Tối Giản Tâm Trí",
-                author: "S.J. Scott",
-                type: "rent",
-                price: 18000,
-                rating: 4.5,
-                cover: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
-                desc: "Dọn dẹp sự hỗn loạn trong tư duy để tập trung vào điều quan trọng."
+        // --- LocalStorage Helpers ---
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('bv_users') || '{}');
+        }
+        function saveUsers(users) {
+            localStorage.setItem('bv_users', JSON.stringify(users));
+        }
+        function saveCurrentUser() {
+            if (!currentUser) return;
+            const users = getUsers();
+            users[currentUser.email].balance = walletBalance;
+            users[currentUser.email].orderCounter = orderCounter;
+            saveUsers(users);
+            localStorage.setItem('bv_loggedIn', currentUser.email);
+        }
+        function loadUser(email) {
+            const users = getUsers();
+            const user = users[email];
+            if (!user) return false;
+            currentUser = user;
+            walletBalance = user.balance || 0;
+            orderCounter = user.orderCounter || 1000;
+            return true;
+        }
+
+        // --- Auth UI ---
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('authLoginTab');
+            const regTab = document.getElementById('authRegisterTab');
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
+                loginTab.className = "flex-1 py-3 font-bold text-sm text-brand-800 border-b-2 border-brand-800 transition";
+                regTab.className = "flex-1 py-3 font-bold text-sm text-stone-400 border-b-2 border-transparent transition";
+            } else {
+                loginForm.classList.add('hidden'); regForm.classList.remove('hidden');
+                regTab.className = "flex-1 py-3 font-bold text-sm text-brand-800 border-b-2 border-brand-800 transition";
+                loginTab.className = "flex-1 py-3 font-bold text-sm text-stone-400 border-b-2 border-transparent transition";
             }
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('regError').classList.add('hidden');
+        }
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash text-sm"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i class="fa-solid fa-eye text-sm"></i>';
+            }
+        }
+
+        function showAuthError(formType, msg) {
+            const el = document.getElementById(formType === 'login' ? 'loginError' : 'regError');
+            el.querySelector('span').textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            const users = getUsers();
+            if (users[email]) {
+                showAuthError('register', 'Email này đã được đăng ký! Hãy đăng nhập.');
+                return;
+            }
+
+            users[email] = { name, email, phone, password, balance: 0, orderCounter: 1000 };
+            saveUsers(users);
+
+            // Auto login
+            currentUser = users[email];
+            walletBalance = 0;
+            orderCounter = 1000;
+            localStorage.setItem('bv_loggedIn', email);
+            enterApp();
+            showToast(`Chào mừng ${name}! Tài khoản đã được tạo.`);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+
+            const users = getUsers();
+            if (!users[email]) {
+                showAuthError('login', 'Email chưa được đăng ký!');
+                return;
+            }
+            if (users[email].password !== password) {
+                showAuthError('login', 'Mật khẩu không đúng!');
+                return;
+            }
+
+            loadUser(email);
+            localStorage.setItem('bv_loggedIn', email);
+            enterApp();
+            showToast(`Chào mừng trở lại, ${currentUser.name}!`);
+        }
+
+        function handleLogout() {
+            saveCurrentUser();
+            localStorage.removeItem('bv_loggedIn');
+            currentUser = null;
+            walletBalance = 0;
+            cart = [];
+            closeModal('userModal');
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('registerForm').reset();
+        }
+
+        function enterApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            updateWalletUI();
+            updateCartUI();
+            updateProfileUI();
+            filterBooks('all');
+        }
+
+        function updateProfileUI() {
+            if (!currentUser) return;
+            document.getElementById('headerUserName').textContent = currentUser.name;
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profilePhone').textContent = currentUser.phone || 'N/A';
+            document.getElementById('profileBalance').textContent = formatMoney(walletBalance);
+        }
+
+        // --- Check auto-login on page load ---
+        function checkAutoLogin() {
+            const savedEmail = localStorage.getItem('bv_loggedIn');
+            if (savedEmail && loadUser(savedEmail)) {
+                enterApp();
+            }
+        }
+
+        // ==================== BOOKS ====================
+        const books = [
+            { id:1, title:"Đắc Nhân Tâm", author:"Dale Carnegie", type:"buy", price:95000, rating:4.9, cover:"https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80", desc:"Nghệ thuật thu phục lòng người và giao tiếp ứng xử thành công." },
+            { id:2, title:"Nhà Giả Kim", author:"Paulo Coelho", type:"rent", price:15000, rating:4.8, cover:"https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80", desc:"Hành trình theo đuổi vận mệnh của chàng chăn cừu Santiago." },
+            { id:3, title:"Tâm Lý Học Về Tiền", author:"Morgan Housel", type:"buy", price:142000, rating:4.9, cover:"https://images.unsplash.com/photo-1592496431122-2349e0fbc666?auto=format&fit=crop&w=600&q=80", desc:"Những bài học vượt thời gian về sự giàu có, tham lam và hạnh phúc." },
+            { id:4, title:"Tuổi Trẻ Đáng Giá Bao Nhiêu", author:"Rosie Nguyễn", type:"rent", price:12000, rating:4.6, cover:"https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80", desc:"Cuốn sách truyền cảm hứng sống và học tập mạnh mẽ cho giới trẻ." },
+            { id:5, title:"Cây Cam Ngọt Của Tôi", author:"José Mauro de Vasconcelos", type:"buy", price:88000, rating:5.0, cover:"https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80", desc:"Câu chuyện xúc động về cậu bé Zezé và tình yêu thương dịu dàng." },
+            { id:6, title:"Lược Sử Loài Người", author:"Yuval Noah Harari", type:"rent", price:25000, rating:4.9, cover:"https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80", desc:"Khám phá lịch sử phát triển kì diệu của loài người từ thời đồ đá." },
+            { id:7, title:"Thói Quen Nguyên Tử (Atomic Habits)", author:"James Clear", type:"buy", price:135000, rating:4.9, cover:"https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80", desc:"Thay đổi nhỏ, kết quả lớn - Phương pháp xây dựng thói quen tốt." },
+            { id:8, title:"Tối Giản Tâm Trí", author:"S.J. Scott", type:"rent", price:18000, rating:4.5, cover:"https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80", desc:"Dọn dẹp sự hỗn loạn trong tư duy để tập trung vào điều quan trọng." }
         ];
 
-        // --- RENDER FUNCTIONS ---
-        function formatMoney(amount) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-        }
+        function formatMoney(a) { return new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(a); }
 
         function renderBooks(data) {
             const grid = document.getElementById('bookGrid');
             const empty = document.getElementById('emptyState');
             grid.innerHTML = '';
-
-            if (data.length === 0) {
-                empty.classList.remove('hidden');
-                return;
-            } else {
-                empty.classList.add('hidden');
-            }
-
+            if (data.length === 0) { empty.classList.remove('hidden'); return; }
+            else { empty.classList.add('hidden'); }
             data.forEach(book => {
                 const isRent = book.type === 'rent';
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group";
-
                 card.innerHTML = `
                     <div class="relative h-64 overflow-hidden bg-stone-100">
                         <img src="${book.cover}" alt="${book.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${isRent ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
-                            ${isRent ? '<i class="fa-solid fa-clock-rotate-left mr-1"></i> Cho Thuê' : '<i class="fa-solid fa-cart-shopping mr-1"></i> Sách Bán'}
+                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${isRent?'bg-amber-100 text-amber-800 border border-amber-300':'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
+                            ${isRent?'<i class="fa-solid fa-clock-rotate-left mr-1"></i> Cho Thuê':'<i class="fa-solid fa-cart-shopping mr-1"></i> Sách Bán'}
                         </span>
                     </div>
                     <div class="p-5 flex-1 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start gap-2 mb-1">
                                 <h3 class="font-serif font-bold text-base text-stone-900 group-hover:text-brand-800 transition line-clamp-1">${book.title}</h3>
-                                <div class="flex items-center text-amber-500 text-xs shrink-0 mt-1">
-                                    <i class="fa-solid fa-star mr-1"></i>
-                                    <span class="font-bold text-stone-700">${book.rating}</span>
-                                </div>
+                                <div class="flex items-center text-amber-500 text-xs shrink-0 mt-1"><i class="fa-solid fa-star mr-1"></i><span class="font-bold text-stone-700">${book.rating}</span></div>
                             </div>
                             <p class="text-xs text-stone-500 mb-2 font-medium">Tác giả: ${book.author}</p>
                             <p class="text-xs text-stone-400 line-clamp-2 mb-4">${book.desc}</p>
                         </div>
-
                         <div class="pt-3 border-t border-stone-100 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] uppercase font-bold text-stone-400 block">${isRent ? 'Giá thuê / tuần' : 'Giá bán đứt'}</span>
-                                <span class="font-bold text-base ${isRent ? 'text-amber-700' : 'text-emerald-700'}">${formatMoney(book.price)}</span>
+                                <span class="text-[10px] uppercase font-bold text-stone-400 block">${isRent?'Giá thuê / tuần':'Giá bán đứt'}</span>
+                                <span class="font-bold text-base ${isRent?'text-amber-700':'text-emerald-700'}">${formatMoney(book.price)}</span>
                             </div>
                             <button onclick="addToCart(${book.id})" class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-brand-800 hover:text-white text-stone-700 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid ${isRent ? 'fa-key' : 'fa-cart-plus'} text-xs"></i>
-                                <span>${isRent ? 'Thuê ngay' : 'Thêm vào giỏ'}</span>
+                                <i class="fa-solid ${isRent?'fa-key':'fa-cart-plus'} text-xs"></i><span>${isRent?'Thuê ngay':'Thêm vào giỏ'}</span>
                             </button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 grid.appendChild(card);
             });
         }
 
-        // --- CART SYSTEM ---
+        // ==================== CART ====================
         function addToCart(bookId) {
             const book = books.find(b => b.id === bookId);
             const existing = cart.find(item => item.id === bookId);
-
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                cart.push({
-                    ...book,
-                    quantity: 1,
-                    rentWeeks: book.type === 'rent' ? 1 : 0
-                });
-            }
-
+            if (existing) { existing.quantity += 1; }
+            else { cart.push({ ...book, quantity: 1, rentWeeks: book.type === 'rent' ? 1 : 0 }); }
             updateCartUI();
             showToast(`Đã thêm "${book.title}" vào giỏ hàng`);
         }
-
         function updateQuantity(bookId, delta) {
             const item = cart.find(i => i.id === bookId);
             if (!item) return;
-
             item.quantity += delta;
-            if (item.quantity <= 0) {
-                cart = cart.filter(i => i.id !== bookId);
-            }
+            if (item.quantity <= 0) cart = cart.filter(i => i.id !== bookId);
             updateCartUI();
         }
-
         function updateRentWeeks(bookId, weeks) {
             const item = cart.find(i => i.id === bookId);
-            if (item) {
-                item.rentWeeks = parseInt(weeks) || 1;
-                updateCartUI();
-            }
+            if (item) { item.rentWeeks = parseInt(weeks) || 1; updateCartUI(); }
         }
-
         function getCartTotal() {
-            return cart.reduce((sum, item) => {
-                return sum + (item.type === 'rent' ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity);
-            }, 0);
+            return cart.reduce((sum, item) => sum + (item.type === 'rent' ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity), 0);
         }
-
         function updateCartUI() {
-            // Count
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
             document.getElementById('cartCount').textContent = totalItems;
-
-            // Render Items
             const container = document.getElementById('cartItemsContainer');
             container.innerHTML = '';
-
             if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-stone-400">
-                        <i class="fa-solid fa-basket-shopping text-4xl mb-3"></i>
-                        <p class="text-sm font-medium">Giỏ hàng của bạn đang trống</p>
-                    </div>
-                `;
+                container.innerHTML = '<div class="text-center py-12 text-stone-400"><i class="fa-solid fa-basket-shopping text-4xl mb-3"></i><p class="text-sm font-medium">Giỏ hàng trống</p></div>';
             } else {
                 cart.forEach(item => {
                     const isRent = item.type === 'rent';
-                    const itemTotal = isRent 
-                        ? item.price * item.quantity * item.rentWeeks 
-                        : item.price * item.quantity;
-
+                    const itemTotal = isRent ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity;
                     const div = document.createElement('div');
-                    div.className = "bg-stone-50 p-3.5 rounded-xl border border-stone-200/70 flex gap-3 relative";
+                    div.className = "bg-stone-50 p-3.5 rounded-xl border border-stone-200/70 flex gap-3";
                     div.innerHTML = `
                         <img src="${item.cover}" class="w-16 h-20 object-cover rounded-lg shrink-0">
                         <div class="flex-1 flex flex-col justify-between">
                             <div>
-                                <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-xs text-stone-800 line-clamp-1 pr-4">${item.title}</h4>
-                                    <button onclick="removeItem(${item.id})" class="text-stone-400 hover:text-red-500 text-xs">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                                <span class="text-[10px] font-semibold ${isRent ? 'text-amber-700' : 'text-emerald-700'}">
-                                    ${isRent ? 'Sách thuê' : 'Sách mua'} - ${formatMoney(item.price)}${isRent ? '/tuần' : ''}
-                                </span>
+                                <div class="flex justify-between items-start"><h4 class="font-bold text-xs text-stone-800 line-clamp-1 pr-4">${item.title}</h4><button onclick="removeItem(${item.id})" class="text-stone-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash-can"></i></button></div>
+                                <span class="text-[10px] font-semibold ${isRent?'text-amber-700':'text-emerald-700'}">${isRent?'Thuê':'Mua'} - ${formatMoney(item.price)}${isRent?'/tuần':''}</span>
                             </div>
-
-                            ${isRent ? `
-                                <div class="flex items-center gap-2 my-1 text-xs">
-                                    <span class="text-stone-500 text-[11px]">Số tuần thuê:</span>
-                                    <select onchange="updateRentWeeks(${item.id}, this.value)" class="bg-white border rounded px-1.5 py-0.5 text-xs">
-                                        ${[1,2,3,4,8].map(w => `<option value="${w}" ${item.rentWeeks === w ? 'selected' : ''}>${w} tuần</option>`).join('')}
-                                    </select>
-                                </div>
-                            ` : ''}
-
+                            ${isRent ? `<div class="flex items-center gap-2 my-1 text-xs"><span class="text-stone-500 text-[11px]">Số tuần:</span><select onchange="updateRentWeeks(${item.id}, this.value)" class="bg-white border rounded px-1.5 py-0.5 text-xs">${[1,2,3,4,8].map(w=>`<option value="${w}" ${item.rentWeeks===w?'selected':''}>${w} tuần</option>`).join('')}</select></div>` : ''}
                             <div class="flex justify-between items-center mt-1">
-                                <div class="flex items-center border rounded-lg bg-white overflow-hidden">
-                                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">-</button>
-                                    <span class="px-2 text-xs font-bold text-stone-800">${item.quantity}</span>
-                                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">+</button>
-                                </div>
+                                <div class="flex items-center border rounded-lg bg-white overflow-hidden"><button onclick="updateQuantity(${item.id},-1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">-</button><span class="px-2 text-xs font-bold text-stone-800">${item.quantity}</span><button onclick="updateQuantity(${item.id},1)" class="px-2 py-0.5 hover:bg-stone-100 text-xs font-bold text-stone-600">+</button></div>
                                 <span class="font-bold text-xs text-stone-900">${formatMoney(itemTotal)}</span>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     container.appendChild(div);
                 });
             }
-
-            // Totals
             const subtotal = getCartTotal();
             document.getElementById('cartSubtotal').textContent = formatMoney(subtotal);
             document.getElementById('cartTotal').textContent = formatMoney(subtotal);
             document.getElementById('cartWalletBalance').textContent = formatMoney(walletBalance);
         }
-
-        function removeItem(id) {
-            cart = cart.filter(i => i.id !== id);
-            updateCartUI();
-        }
-
+        function removeItem(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); }
         function toggleCartDrawer() {
             const drawer = document.getElementById('cartDrawer');
             const content = document.getElementById('cartContent');
-            
-            if (drawer.classList.contains('opacity-0')) {
-                drawer.classList.remove('pointer-events-none', 'opacity-0');
-                content.classList.remove('translate-x-full');
-            } else {
-                content.classList.add('translate-x-full');
-                drawer.classList.add('opacity-0', 'pointer-events-none');
-            }
+            if (drawer.classList.contains('opacity-0')) { drawer.classList.remove('pointer-events-none','opacity-0'); content.classList.remove('translate-x-full'); }
+            else { content.classList.add('translate-x-full'); drawer.classList.add('opacity-0','pointer-events-none'); }
         }
 
-        // --- CHECKOUT PROCESS ---
+        // ==================== CHECKOUT ====================
         function openCheckoutForm() {
-            if (cart.length === 0) {
-                showToast("Giỏ hàng của bạn đang trống!", "error");
-                return;
-            }
-
+            if (cart.length === 0) { showToast("Giỏ hàng trống!", "error"); return; }
             const total = getCartTotal();
             pendingPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            if (pendingPaymentMethod === 'wallet' && walletBalance < total) { showToast("Số dư ví không đủ! Vui lòng nạp thêm.", "error"); openModal('walletModal'); return; }
 
-            if (pendingPaymentMethod === 'wallet' && walletBalance < total) {
-                showToast("Số dư ví không đủ! Vui lòng nạp thêm.", "error");
-                openModal('walletModal');
-                return;
+            // Auto-fill from user profile
+            if (currentUser) {
+                document.getElementById('receiverName').value = currentUser.name || '';
+                document.getElementById('receiverPhone').value = currentUser.phone || '';
             }
 
-            // Fill order summary in checkout form
             const summaryEl = document.getElementById('checkoutOrderSummary');
             summaryEl.innerHTML = cart.map(item => {
                 const isRent = item.type === 'rent';
                 const itemTotal = isRent ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity;
-                return `<div class="flex justify-between">
-                    <span>${item.title} x${item.quantity}${isRent ? ' (' + item.rentWeeks + ' tuần)' : ''}</span>
-                    <span class="font-semibold">${formatMoney(itemTotal)}</span>
-                </div>`;
+                return `<div class="flex justify-between"><span>${item.title} x${item.quantity}${isRent?' ('+item.rentWeeks+' tuần)':''}</span><span class="font-semibold">${formatMoney(itemTotal)}</span></div>`;
             }).join('');
             document.getElementById('checkoutTotal').textContent = formatMoney(total);
-
-            // Close cart drawer, open checkout
             toggleCartDrawer();
             setTimeout(() => openModal('checkoutModal'), 300);
         }
 
         function processCheckout(e) {
             e.preventDefault();
-
             const name = document.getElementById('receiverName').value.trim();
             const phone = document.getElementById('receiverPhone').value.trim();
             const address = document.getElementById('receiverAddress').value.trim();
             const note = document.getElementById('orderNote').value.trim();
             const total = getCartTotal();
-
-            // Disable button
             const btn = document.getElementById('checkoutSubmitBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
 
-            // Process payment
             if (pendingPaymentMethod === 'wallet') {
                 walletBalance -= total;
                 updateWalletUI();
+                saveCurrentUser();
                 finalizeOrder(name, phone, address, note, total, 'Ví BookVerse');
-            } else if (pendingPaymentMethod === 'qr') {
-                // Show QR first
+            } else {
                 closeModal('checkoutModal');
                 document.getElementById('qrAmount').textContent = formatMoney(total);
-                document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOOKVERSE_PAYMENT_${total}`;
-                
-                // Store pending order info
                 window._pendingOrder = { name, phone, address, note, total };
                 openModal('qrModal');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> <span>Xác Nhận Đặt Hàng</span>';
-                return;
             }
         }
 
         function completeQrPayment() {
             closeModal('qrModal');
             const order = window._pendingOrder;
-            if (order) {
-                finalizeOrder(order.name, order.phone, order.address, order.note, order.total, 'Mã QR Ngân hàng');
-                window._pendingOrder = null;
-            }
+            if (order) { finalizeOrder(order.name, order.phone, order.address, order.note, order.total, 'Mã QR Ngân hàng'); window._pendingOrder = null; }
         }
 
         function finalizeOrder(name, phone, address, note, total, payMethodLabel) {
             orderCounter++;
+            saveCurrentUser();
             const orderId = `#BV${String(orderCounter).padStart(6, '0')}`;
-            const now = new Date();
-            const dateStr = now.toLocaleString('vi-VN', { 
-                year: 'numeric', month: '2-digit', day: '2-digit', 
-                hour: '2-digit', minute: '2-digit' 
-            });
+            const dateStr = new Date().toLocaleString('vi-VN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
 
-            // --- Fill Receipt ---
             document.getElementById('receiptOrderId').textContent = orderId;
             document.getElementById('receiptDate').textContent = dateStr;
             document.getElementById('receiptName').textContent = name;
@@ -884,61 +828,37 @@
             document.getElementById('receiptPayMethod').textContent = payMethodLabel;
             document.getElementById('receiptSubtotal').textContent = formatMoney(total);
             document.getElementById('receiptTotal').textContent = formatMoney(total);
+            if (note) { document.getElementById('receiptNote').textContent = note; document.getElementById('receiptNoteRow').classList.remove('hidden'); }
+            else { document.getElementById('receiptNoteRow').classList.add('hidden'); }
 
-            if (note) {
-                document.getElementById('receiptNote').textContent = note;
-                document.getElementById('receiptNoteRow').classList.remove('hidden');
-            } else {
-                document.getElementById('receiptNoteRow').classList.add('hidden');
-            }
-
-            // Items
-            const itemsEl = document.getElementById('receiptItems');
-            itemsEl.innerHTML = cart.map(item => {
+            document.getElementById('receiptItems').innerHTML = cart.map(item => {
                 const isRent = item.type === 'rent';
                 const itemTotal = isRent ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity;
                 return `<div class="flex justify-between items-center bg-stone-50 rounded-lg px-3 py-2 border border-stone-100">
-                    <div class="flex items-center gap-2">
-                        <img src="${item.cover}" class="w-8 h-10 object-cover rounded">
-                        <div>
-                            <p class="text-xs font-bold text-stone-800">${item.title}</p>
-                            <p class="text-[10px] text-stone-500">${isRent ? 'Thuê ' + item.rentWeeks + ' tuần' : 'Mua đứt'} × ${item.quantity}</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold text-stone-700">${formatMoney(itemTotal)}</span>
-                </div>`;
+                    <div class="flex items-center gap-2"><img src="${item.cover}" class="w-8 h-10 object-cover rounded"><div><p class="text-xs font-bold text-stone-800">${item.title}</p><p class="text-[10px] text-stone-500">${isRent?'Thuê '+item.rentWeeks+' tuần':'Mua đứt'} × ${item.quantity}</p></div></div>
+                    <span class="text-xs font-bold text-stone-700">${formatMoney(itemTotal)}</span></div>`;
             }).join('');
 
-            // --- Send Email via FormSubmit ---
             sendOrderEmail(orderId, dateStr, name, phone, address, note, total, payMethodLabel);
 
-            // --- Reset ---
-            const savedCart = [...cart];
             cart = [];
             updateCartUI();
             closeModal('checkoutModal');
-
-            // Reset form
             document.getElementById('checkoutForm').reset();
             const btn = document.getElementById('checkoutSubmitBtn');
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> <span>Xác Nhận Đặt Hàng</span>';
-
-            // Show receipt
             setTimeout(() => openModal('receiptModal'), 400);
-            showToast("Đặt hàng thành công! Biên lai đã được gửi qua Email.");
+            showToast("Đặt hàng thành công!");
         }
 
-        // --- SEND EMAIL ---
         function sendOrderEmail(orderId, dateStr, name, phone, address, note, total, payMethod) {
-            // Build items text
             const itemsText = cart.map(item => {
                 const isRent = item.type === 'rent';
                 const itemTotal = isRent ? item.price * item.quantity * item.rentWeeks : item.price * item.quantity;
-                return `• ${item.title} (${isRent ? 'Thuê ' + item.rentWeeks + ' tuần' : 'Mua'}) x${item.quantity} = ${formatMoney(itemTotal)}`;
+                return `• ${item.title} (${isRent?'Thuê '+item.rentWeeks+' tuần':'Mua'}) x${item.quantity} = ${formatMoney(itemTotal)}`;
             }).join('\n');
 
-            // Use FormSubmit AJAX API (no signup needed)
             const formData = new FormData();
             formData.append('_subject', `📦 Đơn hàng mới ${orderId} - BookVerse`);
             formData.append('_template', 'box');
@@ -948,175 +868,106 @@
             formData.append('Số điện thoại', phone);
             formData.append('Địa chỉ', address);
             formData.append('Ghi chú', note || 'Không có');
-            formData.append('Chi tiết sản phẩm', itemsText);
+            formData.append('Sản phẩm', itemsText);
             formData.append('Tổng thanh toán', formatMoney(total));
-            formData.append('Phương thức thanh toán', payMethod);
+            formData.append('Thanh toán qua', payMethod);
+            formData.append('Tài khoản đặt', currentUser ? currentUser.email : 'N/A');
             formData.append('_captcha', 'false');
 
-            fetch(`https://formsubmit.co/ajax/${SHOP_EMAIL}`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Email sent:', data);
-            })
-            .catch(error => {
-                console.error('Email error:', error);
-                // Fallback: open mailto
-                const subject = encodeURIComponent(`Đơn hàng mới ${orderId} - BookVerse`);
-                const body = encodeURIComponent(
-                    `ĐƠN HÀNG MỚI - BOOKVERSE\n` +
-                    `========================\n` +
-                    `Mã đơn: ${orderId}\n` +
-                    `Ngày: ${dateStr}\n\n` +
-                    `THÔNG TIN NGƯỜI NHẬN:\n` +
-                    `Tên: ${name}\n` +
-                    `SĐT: ${phone}\n` +
-                    `Địa chỉ: ${address}\n` +
-                    `Ghi chú: ${note || 'Không có'}\n\n` +
-                    `SẢN PHẨM:\n${itemsText}\n\n` +
-                    `TỔNG: ${formatMoney(total)}\n` +
-                    `Thanh toán: ${payMethod}`
-                );
-                window.open(`mailto:${SHOP_EMAIL}?subject=${subject}&body=${body}`, '_blank');
-            });
+            fetch(`https://formsubmit.co/ajax/${SHOP_EMAIL}`, { method: 'POST', body: formData })
+            .then(r => r.json()).then(d => console.log('Email sent:', d))
+            .catch(err => console.error('Email error:', err));
         }
 
-        function printReceipt() {
-            window.print();
-        }
+        function printReceipt() { window.print(); }
 
-        // --- WALLET SYSTEM ---
+        // ==================== WALLET ====================
         function updateWalletUI() {
             document.getElementById('walletBalance').textContent = formatMoney(walletBalance);
             document.getElementById('cartWalletBalance').textContent = formatMoney(walletBalance);
             document.getElementById('modalWalletBalance').textContent = formatMoney(walletBalance);
+            document.getElementById('profileBalance').textContent = formatMoney(walletBalance);
         }
-
         function switchWalletTab(tab) {
-            const depForm = document.getElementById('depositForm');
-            const withForm = document.getElementById('withdrawForm');
-            const depBtn = document.getElementById('btnDepositTab');
-            const withBtn = document.getElementById('btnWithdrawTab');
-
+            const depForm = document.getElementById('depositForm'), withForm = document.getElementById('withdrawForm');
+            const depBtn = document.getElementById('btnDepositTab'), withBtn = document.getElementById('btnWithdrawTab');
             if (tab === 'deposit') {
-                depForm.classList.remove('hidden');
-                withForm.classList.add('hidden');
+                depForm.classList.remove('hidden'); withForm.classList.add('hidden');
                 depBtn.className = "flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800";
                 withBtn.className = "flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent";
             } else {
-                depForm.classList.add('hidden');
-                withForm.classList.remove('hidden');
+                depForm.classList.add('hidden'); withForm.classList.remove('hidden');
                 withBtn.className = "flex-1 py-2 font-bold text-sm text-brand-800 border-b-2 border-brand-800";
                 depBtn.className = "flex-1 py-2 font-bold text-sm text-stone-400 border-b-2 border-transparent";
             }
         }
-
         function handleDeposit(e) {
             e.preventDefault();
             const amount = parseInt(document.getElementById('depositAmount').value);
-            const method = document.getElementById('depositMethod').value;
-
             if (amount > 0) {
                 walletBalance += amount;
                 updateWalletUI();
+                saveCurrentUser();
                 document.getElementById('depositAmount').value = '';
                 closeModal('walletModal');
-                showToast(`Đã nạp ${formatMoney(amount)} qua ${method}`);
+                showToast(`Đã nạp ${formatMoney(amount)} vào ví thành công!`);
             }
         }
-
         function handleWithdraw(e) {
             e.preventDefault();
             const amount = parseInt(document.getElementById('withdrawAmount').value);
-
-            if (amount > walletBalance) {
-                showToast("Số dư ví không đủ để rút!", "error");
-                return;
-            }
-
+            if (amount > walletBalance) { showToast("Số dư ví không đủ!", "error"); return; }
             if (amount > 0) {
                 walletBalance -= amount;
                 updateWalletUI();
+                saveCurrentUser();
                 document.getElementById('withdrawAmount').value = '';
                 closeModal('walletModal');
                 showToast(`Đã rút ${formatMoney(amount)} về tài khoản ngân hàng`);
             }
         }
 
-        // --- FILTER & SEARCH ---
+        // ==================== FILTER & SEARCH ====================
         function filterBooks(type) {
             currentFilter = type;
-            
-            // Tab styles
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-white', 'shadow-sm', 'text-brand-800', 'font-bold'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-white','shadow-sm','text-brand-800','font-bold'));
             const activeTab = document.getElementById(`tab-${type}`);
-            if(activeTab) activeTab.classList.add('bg-white', 'shadow-sm', 'text-brand-800', 'font-bold');
-
-            let filtered = books;
-            if (type !== 'all') {
-                filtered = books.filter(b => b.type === type);
-            }
-
-            // Apply search filter if any
+            if (activeTab) activeTab.classList.add('bg-white','shadow-sm','text-brand-800','font-bold');
+            let filtered = type !== 'all' ? books.filter(b => b.type === type) : books;
             const query = document.getElementById('searchInput').value.toLowerCase();
-            if(query) {
-                filtered = filtered.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
-            }
-
+            if (query) filtered = filtered.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
             renderBooks(filtered);
         }
-
         function handleSearch(isMobile = false) {
-            const inputId = isMobile ? 'mobileSearchInput' : 'searchInput';
-            const query = document.getElementById(inputId).value.toLowerCase();
-            
+            const query = document.getElementById(isMobile ? 'mobileSearchInput' : 'searchInput').value.toLowerCase();
             let filtered = currentFilter === 'all' ? books : books.filter(b => b.type === currentFilter);
             filtered = filtered.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query));
-            
             renderBooks(filtered);
         }
 
-        // --- MODAL & TOAST HELPERS ---
+        // ==================== HELPERS ====================
         function openModal(id) {
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-            }, 10);
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
         }
-
         function closeModal(id) {
             const modal = document.getElementById(id);
             modal.classList.add('opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 200);
+            setTimeout(() => modal.classList.add('hidden'), 200);
         }
-
         function showToast(msg, type = "success") {
             const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            const message = document.getElementById('toastMessage');
-
-            message.textContent = msg;
-            if (type === 'error') {
-                icon.className = "fa-solid fa-circle-exclamation text-rose-400 text-lg";
-            } else {
-                icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
-            }
-
+            document.getElementById('toastMessage').textContent = msg;
+            document.getElementById('toastIcon').className = type === 'error' ? "fa-solid fa-circle-exclamation text-rose-400 text-lg" : "fa-solid fa-circle-check text-emerald-400 text-lg";
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        // --- INITIALIZATION ---
+        // ==================== INIT ====================
         window.onload = function() {
+            checkAutoLogin();
             filterBooks('all');
-            updateWalletUI();
         };
     </script>
 </body>
